@@ -1,0 +1,19 @@
+{
+  "scripts": {
+    "start": "budo index.js --open --live",
+    "lint": "standard"
+  },
+  "devDependencies": {
+    "browserify": "^14.3.0",
+    "budo": "^10.0.3",
+    "standard": "^10.0.2"
+  },
+  "dependencies": {
+    "alea": "^0.0.9",
+    "d3-random": "^1.0.3",
+    "dat-gui": "^0.5.0",
+    "gl-vec2": "^1.0.0",
+    "new-array": "^1.0.0",
+    "sketch-js": "^1.1.3"
+  }
+}
