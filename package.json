@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "start": "budo index.js --open --live",
+    "start": "budo index.js:bundle.js --open --live",
+    "build": "mkdir -p docs && browserify index.js > docs/bundle.js && cp index.html docs/",
     "lint": "standard"
   },
   "devDependencies": {
