@@ -4,6 +4,10 @@ Inspired by [this great blog post](http://www.tylerlhobbs.com/writings/watercolo
 
 ## try me
 
+[Demo](https://rolyatmax.github.io/watercolor)
+
+Or clone this repo and run:
+
 ```shell
 npm install
 npm start
