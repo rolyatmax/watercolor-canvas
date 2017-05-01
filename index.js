@@ -15,38 +15,28 @@ const ctx = Sketch.create({
 })
 
 const settings = {
-  margin: 100,
-  shapeCount: 4,
-  shapePoints: 8,
-  canvasSize: 450,
-  shapeSize: 300,
+  colors: 3,
+  shapePoints: 5,
+  spread: 450,
+  colorSize: 300,
   deformations: 2,
-  layers: 70,
-  seed: 16,
+  layers: 55,
+  randomSeed: 16,
   fitToNeighbor: 'max',
-  sigma: 1.5,
+  sigma: 2,
   blend: 'lighten'
 }
-
-// const colors = [
-//   // [46, 64, 69],
-//   // [131, 173, 181],
-//   // [199, 187, 201],
-//   // [94, 60, 88],
-//   // [191, 181, 178]
-//   [200, 14, 25]
-// ]
 
 let shapes
 let rand
 
 ctx.setup = ctx.resize = function () {
   ctx.globalCompositeOperation = settings.blend
-  rand = new Alea(settings.seed)
+  rand = new Alea(settings.randomSeed)
   ctx.clearRect(0, 0, ctx.width, ctx.height)
 
   const canvasCenter = [ctx.width / 2, ctx.height / 2]
-  shapes = newArray(settings.shapeCount).map(() => {
+  shapes = newArray(settings.colors).map(() => {
     // const rgb = colors[colors.length * rand() | 0]
     const rgb = [
       rand() * 256 | 0,
@@ -55,7 +45,7 @@ ctx.setup = ctx.resize = function () {
     ]
 
     const rads = rand() * Math.PI * 2
-    const dist = Math.pow(rand(), 0.5) * settings.canvasSize
+    const dist = Math.pow(rand(), 0.5) * settings.spread
     const shapeCenter = [
       Math.cos(rads) * dist + canvasCenter[0],
       Math.sin(rads) * dist + canvasCenter[1]
@@ -63,12 +53,12 @@ ctx.setup = ctx.resize = function () {
     let points = newArray(settings.shapePoints).map((_, i) => {
       const rads = Math.PI * 2 / settings.shapePoints * i
       return [
-        Math.cos(rads) * settings.shapeSize + shapeCenter[0],
-        Math.sin(rads) * settings.shapeSize + shapeCenter[1]
+        Math.cos(rads) * settings.colorSize + shapeCenter[0],
+        Math.sin(rads) * settings.colorSize + shapeCenter[1]
       ]
     })
 
-    let j = settings.deformations
+    let j = settings.deformations + 1
     while (j--) {
       points = deformPolygon(points)
     }
@@ -91,16 +81,16 @@ ctx.setup = ctx.resize = function () {
 }
 
 const gui = new GUI()
-gui.add(settings, 'shapeCount', 1, 10).step(1).onChange(ctx.setup.bind(ctx))
-gui.add(settings, 'shapePoints', 3, 15).step(1).onChange(ctx.setup.bind(ctx))
-gui.add(settings, 'canvasSize', 1, 1000).onChange(ctx.setup.bind(ctx))
-gui.add(settings, 'shapeSize', 1, 1000).onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'colors', 1, 10).step(1).onChange(ctx.setup.bind(ctx))
+// gui.add(settings, 'shapePoints', 3, 15).step(1).onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'spread', 1, 1000).onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'colorSize', 1, 1000).onChange(ctx.setup.bind(ctx))
 gui.add(settings, 'deformations', 0, 6).step(1).onChange(ctx.setup.bind(ctx))
-gui.add(settings, 'layers', 1, 200).step(1).onChange(ctx.setup.bind(ctx))
-gui.add(settings, 'sigma', 0, 6).onChange(ctx.setup.bind(ctx))
+// gui.add(settings, 'layers', 1, 200).step(1).onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'sigma', 0.5, 3).onChange(ctx.setup.bind(ctx))
 gui.add(settings, 'blend', ['lighten', 'darken']).onChange(ctx.setup.bind(ctx))
-gui.add(settings, 'fitToNeighbor', ['min', 'max']).onChange(ctx.setup.bind(ctx))
-gui.add(settings, 'seed', 0, 999).onChange(ctx.setup.bind(ctx))
+// gui.add(settings, 'fitToNeighbor', ['min', 'max']).onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'randomSeed', 0, 999).onChange(ctx.setup.bind(ctx))
 
 // need to figure this out
 function deformPolygon (points) {
