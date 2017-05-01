@@ -3,6 +3,7 @@ const newArray = require('new-array')
 const vec2 = require('gl-vec2')
 const { GUI } = require('dat-gui')
 const Alea = require('alea')
+const { union, intersect } = require('polybooljs')
 const normal = require('./normal')
 
 const container = document.body.appendChild(document.createElement('div'))
@@ -22,7 +23,6 @@ const settings = {
   deformations: 2,
   layers: 55,
   randomSeed: 16,
-  fitToNeighbor: 'max',
   sigma: 2,
   blend: 'lighten'
 }
@@ -58,7 +58,7 @@ ctx.setup = ctx.resize = function () {
       ]
     })
 
-    let j = settings.deformations + 1
+    let j = settings.deformations + 2
     while (j--) {
       points = deformPolygon(points)
     }
@@ -103,11 +103,7 @@ function deformPolygon (points) {
   newPoints = newPoints.map((pt, i) => {
     const lastPt = newPoints[i - 1] || newPoints[newPoints.length - 1]
     const nextPt = newPoints[i + 1] || newPoints[0]
-    const minOrMax = Math[settings.fitToNeighbor]
-    const distToClosestPt = minOrMax(
-      vec2.distance(pt, lastPt),
-      vec2.distance(pt, nextPt)
-    )
+    const distToClosestPt = (vec2.distance(pt, lastPt) + vec2.distance(pt, nextPt)) / 2
     const r = normal(0, distToClosestPt / settings.sigma, rand)
     return [
       r() + pt[0],
