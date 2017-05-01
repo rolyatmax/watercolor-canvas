@@ -82,11 +82,11 @@ ctx.setup = ctx.resize = function () {
 }
 
 const gui = new GUI()
-gui.add(settings, 'colors', 1, 10).step(1).onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'colors', 1, 6).step(1).onChange(ctx.setup.bind(ctx))
 // gui.add(settings, 'shapePoints', 3, 15).step(1).onChange(ctx.setup.bind(ctx))
 gui.add(settings, 'spread', 1, 1000).onChange(ctx.setup.bind(ctx))
 gui.add(settings, 'colorSize', 1, 1000).onChange(ctx.setup.bind(ctx))
-gui.add(settings, 'deformations', 0, 6).step(1).onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'deformations', 0, 5).step(1).onChange(ctx.setup.bind(ctx))
 // gui.add(settings, 'layers', 1, 200).step(1).onChange(ctx.setup.bind(ctx))
 gui.add(settings, 'sigma', 0.5, 3).onChange(ctx.setup.bind(ctx))
 gui.add(settings, 'blend', ['lighten', 'darken']).onChange(ctx.setup.bind(ctx))
