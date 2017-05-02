@@ -4,6 +4,7 @@ const newArray = require('new-array')
 const vec2 = require('gl-vec2')
 const { GUI } = require('dat-gui')
 const Alea = require('alea')
+const lerp = require('lerp')
 const normal = require('./normal')
 
 const container = document.body.appendChild(document.createElement('div'))
@@ -23,9 +24,11 @@ const settings = {
   deformations: 2,
   layers: 55,
   randomSeed: 16,
-  fitToNeighbor: 'max',
   sigma: 2,
-  blend: 'lighten'
+  blend: 'lighten',
+  mask: true,
+  maskCircles: 300,
+  maskCircleSize: 50
 }
 
 let shapes
@@ -59,7 +62,7 @@ ctx.setup = ctx.resize = function () {
       ]
     })
 
-    let j = settings.deformations + 1
+    let j = settings.deformations + 2
     while (j--) {
       points = deformPolygon(points)
     }
@@ -77,7 +80,7 @@ ctx.setup = ctx.resize = function () {
     }
     const opacity = 1 / (settings.layers + 4)
     const color = `rgba(${rgb.join(', ')}, ${opacity})`
-    drawPolygon(ctx, detailedDeform, color)
+    drawPolygonWithMask(ctx, detailedDeform, color)
   }
 }
 
@@ -90,6 +93,7 @@ gui.add(settings, 'deformations', 0, 5).step(1).onChange(ctx.setup.bind(ctx))
 // gui.add(settings, 'layers', 1, 200).step(1).onChange(ctx.setup.bind(ctx))
 gui.add(settings, 'sigma', 0.5, 3).onChange(ctx.setup.bind(ctx))
 gui.add(settings, 'blend', ['lighten', 'darken']).onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'mask').onChange(ctx.setup.bind(ctx))
 // gui.add(settings, 'fitToNeighbor', ['min', 'max']).onChange(ctx.setup.bind(ctx))
 gui.add(settings, 'randomSeed', 0, 999).onChange(ctx.setup.bind(ctx))
 
@@ -104,11 +108,7 @@ function deformPolygon (points) {
   newPoints = newPoints.map((pt, i) => {
     const lastPt = newPoints[i - 1] || newPoints[newPoints.length - 1]
     const nextPt = newPoints[i + 1] || newPoints[0]
-    const minOrMax = Math[settings.fitToNeighbor]
-    const distToClosestPt = minOrMax(
-      vec2.distance(pt, lastPt),
-      vec2.distance(pt, nextPt)
-    )
+    const distToClosestPt = (vec2.distance(pt, lastPt) + vec2.distance(pt, nextPt)) / 2
     const r = normal(0, distToClosestPt / settings.sigma, rand)
     return [
       r() + pt[0],
@@ -116,6 +116,47 @@ function deformPolygon (points) {
     ]
   })
   return newPoints
+}
+
+function getPolygonExtent (poly) {
+  let xMin = Infinity
+  let xMax = -Infinity
+  let yMin = Infinity
+  let yMax = -Infinity
+  for (let point of poly) {
+    xMin = point[0] < xMin ? point[0] : xMin
+    xMax = point[0] > xMax ? point[0] : xMax
+    yMin = point[1] < yMin ? point[1] : yMin
+    yMax = point[1] > yMax ? point[1] : yMax
+  }
+  return [
+    [xMin, yMin],
+    [xMax, yMax]
+  ]
+}
+
+function setMask (ctx, bounds) {
+  const [xMin, yMin] = bounds[0]
+  const [xMax, yMax] = bounds[1]
+  ctx.beginPath()
+  let j = settings.maskCircles
+  while (j--) {
+    const x = lerp(xMin, xMax, rand())
+    const y = lerp(yMin, yMax, rand())
+    const radius = rand() * settings.maskCircleSize
+    ctx.arc(x, y, radius, 0, Math.PI * 2)
+  }
+  ctx.clip()
+}
+
+function drawPolygonWithMask (ctx, poly, color) {
+  const polygonBounds = getPolygonExtent(poly)
+  ctx.save()
+  if (settings.mask) {
+    setMask(ctx, polygonBounds)
+  }
+  drawPolygon(ctx, poly, color)
+  ctx.restore()
 }
 
 function drawPolygon (ctx, points, color) {
@@ -127,7 +168,7 @@ function drawPolygon (ctx, points, color) {
   ctx.fill()
 }
 
-},{"./normal":37,"alea":2,"dat-gui":3,"gl-vec2":16,"new-array":35,"sketch-js":36}],2:[function(require,module,exports){
+},{"./normal":38,"alea":2,"dat-gui":3,"gl-vec2":16,"lerp":35,"new-array":36,"sketch-js":37}],2:[function(require,module,exports){
 (function (root, factory) {
   if (typeof exports === 'object') {
       module.exports = factory();
@@ -5175,6 +5216,11 @@ function transformMat4(out, a, m) {
     return out
 }
 },{}],35:[function(require,module,exports){
+function lerp(v0, v1, t) {
+    return v0*(1-t)+v1*t
+}
+module.exports = lerp
+},{}],36:[function(require,module,exports){
 module.exports = newArray
 
 function newArray (n, value) {
@@ -5186,7 +5232,7 @@ function newArray (n, value) {
   return array
 }
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 
 /* Copyright (C) 2013 Justin Windle, http://soulwire.co.uk */
 
@@ -5819,7 +5865,7 @@ function newArray (n, value) {
 
 }));
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 // altered from d3-random to support an optional custom random function
 
 module.exports = function (mu, sigma, rand) {

@@ -3,7 +3,7 @@ const newArray = require('new-array')
 const vec2 = require('gl-vec2')
 const { GUI } = require('dat-gui')
 const Alea = require('alea')
-const { union, intersect } = require('polybooljs')
+const lerp = require('lerp')
 const normal = require('./normal')
 
 const container = document.body.appendChild(document.createElement('div'))
@@ -24,7 +24,10 @@ const settings = {
   layers: 55,
   randomSeed: 16,
   sigma: 2,
-  blend: 'lighten'
+  blend: 'lighten',
+  mask: true,
+  maskCircles: 300,
+  maskCircleSize: 50
 }
 
 let shapes
@@ -76,7 +79,7 @@ ctx.setup = ctx.resize = function () {
     }
     const opacity = 1 / (settings.layers + 4)
     const color = `rgba(${rgb.join(', ')}, ${opacity})`
-    drawPolygon(ctx, detailedDeform, color)
+    drawPolygonWithMask(ctx, detailedDeform, color)
   }
 }
 
@@ -89,6 +92,7 @@ gui.add(settings, 'deformations', 0, 5).step(1).onChange(ctx.setup.bind(ctx))
 // gui.add(settings, 'layers', 1, 200).step(1).onChange(ctx.setup.bind(ctx))
 gui.add(settings, 'sigma', 0.5, 3).onChange(ctx.setup.bind(ctx))
 gui.add(settings, 'blend', ['lighten', 'darken']).onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'mask').onChange(ctx.setup.bind(ctx))
 // gui.add(settings, 'fitToNeighbor', ['min', 'max']).onChange(ctx.setup.bind(ctx))
 gui.add(settings, 'randomSeed', 0, 999).onChange(ctx.setup.bind(ctx))
 
@@ -111,6 +115,47 @@ function deformPolygon (points) {
     ]
   })
   return newPoints
+}
+
+function getPolygonExtent (poly) {
+  let xMin = Infinity
+  let xMax = -Infinity
+  let yMin = Infinity
+  let yMax = -Infinity
+  for (let point of poly) {
+    xMin = point[0] < xMin ? point[0] : xMin
+    xMax = point[0] > xMax ? point[0] : xMax
+    yMin = point[1] < yMin ? point[1] : yMin
+    yMax = point[1] > yMax ? point[1] : yMax
+  }
+  return [
+    [xMin, yMin],
+    [xMax, yMax]
+  ]
+}
+
+function setMask (ctx, bounds) {
+  const [xMin, yMin] = bounds[0]
+  const [xMax, yMax] = bounds[1]
+  ctx.beginPath()
+  let j = settings.maskCircles
+  while (j--) {
+    const x = lerp(xMin, xMax, rand())
+    const y = lerp(yMin, yMax, rand())
+    const radius = rand() * settings.maskCircleSize
+    ctx.arc(x, y, radius, 0, Math.PI * 2)
+  }
+  ctx.clip()
+}
+
+function drawPolygonWithMask (ctx, poly, color) {
+  const polygonBounds = getPolygonExtent(poly)
+  ctx.save()
+  if (settings.mask) {
+    setMask(ctx, polygonBounds)
+  }
+  drawPolygon(ctx, poly, color)
+  ctx.restore()
 }
 
 function drawPolygon (ctx, points, color) {
