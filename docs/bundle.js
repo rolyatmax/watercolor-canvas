@@ -1,11 +1,8 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 const Sketch = require('sketch-js')
-const newArray = require('new-array')
-const vec2 = require('gl-vec2')
 const { GUI } = require('dat-gui')
 const Alea = require('alea')
-const lerp = require('lerp')
-const normal = require('./normal')
+const watercolor = require('./')
 
 const container = document.body.appendChild(document.createElement('div'))
 document.body.style.margin = 0
@@ -31,25 +28,74 @@ const settings = {
   maskCircleSize: 50
 }
 
-let shapes
 let rand
 
 ctx.setup = ctx.resize = function () {
-  ctx.globalCompositeOperation = settings.blend
   rand = new Alea(settings.randomSeed)
   ctx.clearRect(0, 0, ctx.width, ctx.height)
 
-  const canvasCenter = [ctx.width / 2, ctx.height / 2]
-  shapes = newArray(settings.colors).map(() => {
-    // const rgb = colors[colors.length * rand() | 0]
+  const params = Object.assign({}, settings, {
+    randomFn: rand,
+    context: ctx
+  })
+  const draw = watercolor(params)
+  draw()
+}
+
+const gui = new GUI()
+gui.add(settings, 'colors', 1, 6).step(1).onChange(ctx.setup.bind(ctx))
+// gui.add(settings, 'shapePoints', 3, 15).step(1).onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'spread', 1, 1000).onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'colorSize', 1, 1000).onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'deformations', 0, 5).step(1).onChange(ctx.setup.bind(ctx))
+// gui.add(settings, 'layers', 1, 200).step(1).onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'sigma', 0.5, 3).onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'blend', ['lighten', 'darken']).onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'mask').onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'maskCircles', 1, 500).step(1).onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'maskCircleSize', 1, 500).onChange(ctx.setup.bind(ctx))
+// gui.add(settings, 'fitToNeighbor', ['min', 'max']).onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'randomSeed', 0, 999).onChange(ctx.setup.bind(ctx))
+
+},{"./":2,"alea":3,"dat-gui":4,"sketch-js":38}],2:[function(require,module,exports){
+const newArray = require('new-array')
+const vec2 = require('gl-vec2')
+const lerp = require('lerp')
+const normal = require('./normal')
+
+const defaultSettings = {
+  colors: 3,
+  shapePoints: 5,
+  spread: 450,
+  colorSize: 300,
+  deformations: 2,
+  layers: 55,
+  sigma: 2,
+  blend: 'lighten',
+  mask: true,
+  maskCircles: 300,
+  maskCircleSize: 50,
+  random: Math.random
+}
+
+module.exports = function watercolor (settings) {
+  settings = Object.assign({}, defaultSettings, settings)
+  const { context, randomFn } = settings
+  const { width, height } = context.canvas
+
+  context.globalCompositeOperation = settings.blend
+  context.clearRect(0, 0, width, height)
+
+  const canvasCenter = [width / 2, height / 2]
+  const shapes = newArray(settings.colors).map(() => {
     const rgb = [
-      rand() * 256 | 0,
-      rand() * 256 | 0,
-      rand() * 256 | 0
+      randomFn() * 256 | 0,
+      randomFn() * 256 | 0,
+      randomFn() * 256 | 0
     ]
 
-    const rads = rand() * Math.PI * 2
-    const dist = Math.pow(rand(), 0.5) * settings.spread
+    const rads = randomFn() * Math.PI * 2
+    const dist = Math.pow(randomFn(), 0.5) * settings.spread
     const shapeCenter = [
       Math.cos(rads) * dist + canvasCenter[0],
       Math.sin(rads) * dist + canvasCenter[1]
@@ -70,52 +116,64 @@ ctx.setup = ctx.resize = function () {
     return { points, rgb }
   })
 
-  let q = shapes.length * settings.layers
-  while (q--) {
-    const { points, rgb } = shapes[q % shapes.length]
-    let detailedDeform = points.slice()
-    let k = settings.deformations
-    while (k--) {
-      detailedDeform = deformPolygon(detailedDeform)
+  return function draw () {
+    let q = shapes.length * settings.layers
+    while (q--) {
+      const { points, rgb } = shapes[q % shapes.length]
+      let detailedDeform = points.slice()
+      let k = settings.deformations
+      while (k--) {
+        detailedDeform = deformPolygon(detailedDeform)
+      }
+      const opacity = 1 / (settings.layers + 4)
+      const color = `rgba(${rgb.join(', ')}, ${opacity})`
+      drawPolygonWithMask(context, detailedDeform, color)
     }
-    const opacity = 1 / (settings.layers + 4)
-    const color = `rgba(${rgb.join(', ')}, ${opacity})`
-    drawPolygonWithMask(ctx, detailedDeform, color)
   }
-}
 
-const gui = new GUI()
-gui.add(settings, 'colors', 1, 6).step(1).onChange(ctx.setup.bind(ctx))
-// gui.add(settings, 'shapePoints', 3, 15).step(1).onChange(ctx.setup.bind(ctx))
-gui.add(settings, 'spread', 1, 1000).onChange(ctx.setup.bind(ctx))
-gui.add(settings, 'colorSize', 1, 1000).onChange(ctx.setup.bind(ctx))
-gui.add(settings, 'deformations', 0, 5).step(1).onChange(ctx.setup.bind(ctx))
-// gui.add(settings, 'layers', 1, 200).step(1).onChange(ctx.setup.bind(ctx))
-gui.add(settings, 'sigma', 0.5, 3).onChange(ctx.setup.bind(ctx))
-gui.add(settings, 'blend', ['lighten', 'darken']).onChange(ctx.setup.bind(ctx))
-gui.add(settings, 'mask').onChange(ctx.setup.bind(ctx))
-// gui.add(settings, 'fitToNeighbor', ['min', 'max']).onChange(ctx.setup.bind(ctx))
-gui.add(settings, 'randomSeed', 0, 999).onChange(ctx.setup.bind(ctx))
-
-// need to figure this out
-function deformPolygon (points) {
-  let newPoints = []
-  for (let i = 0; i < points.length; i++) {
-    newPoints.push(points[i])
-    const nextPoint = points[i + 1] || points[0]
-    newPoints.push(vec2.lerp([], points[i], nextPoint, rand()))
+  function deformPolygon (points) {
+    let newPoints = []
+    for (let i = 0; i < points.length; i++) {
+      newPoints.push(points[i])
+      const nextPoint = points[i + 1] || points[0]
+      newPoints.push(vec2.lerp([], points[i], nextPoint, randomFn()))
+    }
+    newPoints = newPoints.map((pt, i) => {
+      const lastPt = newPoints[i - 1] || newPoints[newPoints.length - 1]
+      const nextPt = newPoints[i + 1] || newPoints[0]
+      const distToClosestPt = (vec2.distance(pt, lastPt) + vec2.distance(pt, nextPt)) / 2
+      const r = normal(0, distToClosestPt / settings.sigma, randomFn)
+      return [
+        r() + pt[0],
+        r() + pt[1]
+      ]
+    })
+    return newPoints
   }
-  newPoints = newPoints.map((pt, i) => {
-    const lastPt = newPoints[i - 1] || newPoints[newPoints.length - 1]
-    const nextPt = newPoints[i + 1] || newPoints[0]
-    const distToClosestPt = (vec2.distance(pt, lastPt) + vec2.distance(pt, nextPt)) / 2
-    const r = normal(0, distToClosestPt / settings.sigma, rand)
-    return [
-      r() + pt[0],
-      r() + pt[1]
-    ]
-  })
-  return newPoints
+
+  function setMask (context, bounds) {
+    const [xMin, yMin] = bounds[0]
+    const [xMax, yMax] = bounds[1]
+    context.beginPath()
+    let j = settings.maskCircles
+    while (j--) {
+      const x = lerp(xMin, xMax, randomFn())
+      const y = lerp(yMin, yMax, randomFn())
+      const radius = randomFn() * settings.maskCircleSize
+      context.arc(x, y, radius, 0, Math.PI * 2)
+    }
+    context.clip()
+  }
+
+  function drawPolygonWithMask (context, poly, color) {
+    const polygonBounds = getPolygonExtent(poly)
+    context.save()
+    if (settings.mask) {
+      setMask(context, polygonBounds)
+    }
+    drawPolygon(context, poly, color)
+    context.restore()
+  }
 }
 
 function getPolygonExtent (poly) {
@@ -135,40 +193,16 @@ function getPolygonExtent (poly) {
   ]
 }
 
-function setMask (ctx, bounds) {
-  const [xMin, yMin] = bounds[0]
-  const [xMax, yMax] = bounds[1]
-  ctx.beginPath()
-  let j = settings.maskCircles
-  while (j--) {
-    const x = lerp(xMin, xMax, rand())
-    const y = lerp(yMin, yMax, rand())
-    const radius = rand() * settings.maskCircleSize
-    ctx.arc(x, y, radius, 0, Math.PI * 2)
-  }
-  ctx.clip()
+function drawPolygon (context, points, color) {
+  context.beginPath()
+  context.moveTo(points[0][0], points[0][1])
+  points.slice(1).forEach(pt => context.lineTo(pt[0], pt[1]))
+  context.lineTo(points[0][0], points[0][1])
+  context.fillStyle = color
+  context.fill()
 }
 
-function drawPolygonWithMask (ctx, poly, color) {
-  const polygonBounds = getPolygonExtent(poly)
-  ctx.save()
-  if (settings.mask) {
-    setMask(ctx, polygonBounds)
-  }
-  drawPolygon(ctx, poly, color)
-  ctx.restore()
-}
-
-function drawPolygon (ctx, points, color) {
-  ctx.beginPath()
-  ctx.moveTo(points[0][0], points[0][1])
-  points.slice(1).forEach(pt => ctx.lineTo(pt[0], pt[1]))
-  ctx.lineTo(points[0][0], points[0][1])
-  ctx.fillStyle = color
-  ctx.fill()
-}
-
-},{"./normal":38,"alea":2,"dat-gui":3,"gl-vec2":16,"lerp":35,"new-array":36,"sketch-js":37}],2:[function(require,module,exports){
+},{"./normal":39,"gl-vec2":17,"lerp":36,"new-array":37}],3:[function(require,module,exports){
 (function (root, factory) {
   if (typeof exports === 'object') {
       module.exports = factory();
@@ -279,10 +313,10 @@ function drawPolygon (ctx, points, color) {
   }
 }));
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 module.exports = require('./vendor/dat.gui')
 module.exports.color = require('./vendor/dat.color')
-},{"./vendor/dat.color":4,"./vendor/dat.gui":5}],4:[function(require,module,exports){
+},{"./vendor/dat.color":5,"./vendor/dat.gui":6}],5:[function(require,module,exports){
 /**
  * dat-gui JavaScript Controller Library
  * http://code.google.com/p/dat-gui
@@ -1038,7 +1072,7 @@ dat.color.math = (function () {
 })(),
 dat.color.toString,
 dat.utils.common);
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 /**
  * dat-gui JavaScript Controller Library
  * http://code.google.com/p/dat-gui
@@ -4699,7 +4733,7 @@ dat.dom.CenteredDiv = (function (dom, common) {
 dat.utils.common),
 dat.dom.dom,
 dat.utils.common);
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 module.exports = add
 
 /**
@@ -4715,7 +4749,7 @@ function add(out, a, b) {
     out[1] = a[1] + b[1]
     return out
 }
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 module.exports = clone
 
 /**
@@ -4730,7 +4764,7 @@ function clone(a) {
     out[1] = a[1]
     return out
 }
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 module.exports = copy
 
 /**
@@ -4745,7 +4779,7 @@ function copy(out, a) {
     out[1] = a[1]
     return out
 }
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 module.exports = create
 
 /**
@@ -4759,7 +4793,7 @@ function create() {
     out[1] = 0
     return out
 }
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 module.exports = cross
 
 /**
@@ -4777,7 +4811,7 @@ function cross(out, a, b) {
     out[2] = z
     return out
 }
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 module.exports = distance
 
 /**
@@ -4792,7 +4826,7 @@ function distance(a, b) {
         y = b[1] - a[1]
     return Math.sqrt(x*x + y*y)
 }
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 module.exports = divide
 
 /**
@@ -4808,7 +4842,7 @@ function divide(out, a, b) {
     out[1] = a[1] / b[1]
     return out
 }
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 module.exports = dot
 
 /**
@@ -4821,7 +4855,7 @@ module.exports = dot
 function dot(a, b) {
     return a[0] * b[0] + a[1] * b[1]
 }
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 module.exports = forEach
 
 var vec = require('./create')()
@@ -4864,7 +4898,7 @@ function forEach(a, stride, offset, count, fn, arg) {
     
     return a
 }
-},{"./create":9}],15:[function(require,module,exports){
+},{"./create":10}],16:[function(require,module,exports){
 module.exports = fromValues
 
 /**
@@ -4880,7 +4914,7 @@ function fromValues(x, y) {
     out[1] = y
     return out
 }
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 module.exports = {
   create: require('./create')
   , clone: require('./clone')
@@ -4911,7 +4945,7 @@ module.exports = {
   , transformMat4: require('./transformMat4')
   , forEach: require('./forEach')
 }
-},{"./add":6,"./clone":7,"./copy":8,"./create":9,"./cross":10,"./distance":11,"./divide":12,"./dot":13,"./forEach":14,"./fromValues":15,"./length":17,"./lerp":18,"./max":19,"./min":20,"./multiply":21,"./negate":22,"./normalize":23,"./random":24,"./scale":25,"./scaleAndAdd":26,"./set":27,"./squaredDistance":28,"./squaredLength":29,"./subtract":30,"./transformMat2":31,"./transformMat2d":32,"./transformMat3":33,"./transformMat4":34}],17:[function(require,module,exports){
+},{"./add":7,"./clone":8,"./copy":9,"./create":10,"./cross":11,"./distance":12,"./divide":13,"./dot":14,"./forEach":15,"./fromValues":16,"./length":18,"./lerp":19,"./max":20,"./min":21,"./multiply":22,"./negate":23,"./normalize":24,"./random":25,"./scale":26,"./scaleAndAdd":27,"./set":28,"./squaredDistance":29,"./squaredLength":30,"./subtract":31,"./transformMat2":32,"./transformMat2d":33,"./transformMat3":34,"./transformMat4":35}],18:[function(require,module,exports){
 module.exports = length
 
 /**
@@ -4925,7 +4959,7 @@ function length(a) {
         y = a[1]
     return Math.sqrt(x*x + y*y)
 }
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 module.exports = lerp
 
 /**
@@ -4944,7 +4978,7 @@ function lerp(out, a, b, t) {
     out[1] = ay + t * (b[1] - ay)
     return out
 }
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 module.exports = max
 
 /**
@@ -4960,7 +4994,7 @@ function max(out, a, b) {
     out[1] = Math.max(a[1], b[1])
     return out
 }
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 module.exports = min
 
 /**
@@ -4976,7 +5010,7 @@ function min(out, a, b) {
     out[1] = Math.min(a[1], b[1])
     return out
 }
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = multiply
 
 /**
@@ -4992,7 +5026,7 @@ function multiply(out, a, b) {
     out[1] = a[1] * b[1]
     return out
 }
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 module.exports = negate
 
 /**
@@ -5007,7 +5041,7 @@ function negate(out, a) {
     out[1] = -a[1]
     return out
 }
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 module.exports = normalize
 
 /**
@@ -5029,7 +5063,7 @@ function normalize(out, a) {
     }
     return out
 }
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 module.exports = random
 
 /**
@@ -5046,7 +5080,7 @@ function random(out, scale) {
     out[1] = Math.sin(r) * scale
     return out
 }
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 module.exports = scale
 
 /**
@@ -5062,7 +5096,7 @@ function scale(out, a, b) {
     out[1] = a[1] * b
     return out
 }
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 module.exports = scaleAndAdd
 
 /**
@@ -5079,7 +5113,7 @@ function scaleAndAdd(out, a, b, scale) {
     out[1] = a[1] + (b[1] * scale)
     return out
 }
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 module.exports = set
 
 /**
@@ -5095,7 +5129,7 @@ function set(out, x, y) {
     out[1] = y
     return out
 }
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 module.exports = squaredDistance
 
 /**
@@ -5110,7 +5144,7 @@ function squaredDistance(a, b) {
         y = b[1] - a[1]
     return x*x + y*y
 }
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 module.exports = squaredLength
 
 /**
@@ -5124,7 +5158,7 @@ function squaredLength(a) {
         y = a[1]
     return x*x + y*y
 }
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 module.exports = subtract
 
 /**
@@ -5140,7 +5174,7 @@ function subtract(out, a, b) {
     out[1] = a[1] - b[1]
     return out
 }
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 module.exports = transformMat2
 
 /**
@@ -5158,7 +5192,7 @@ function transformMat2(out, a, m) {
     out[1] = m[1] * x + m[3] * y
     return out
 }
-},{}],32:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 module.exports = transformMat2d
 
 /**
@@ -5176,7 +5210,7 @@ function transformMat2d(out, a, m) {
     out[1] = m[1] * x + m[3] * y + m[5]
     return out
 }
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 module.exports = transformMat3
 
 /**
@@ -5195,7 +5229,7 @@ function transformMat3(out, a, m) {
     out[1] = m[1] * x + m[4] * y + m[7]
     return out
 }
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 module.exports = transformMat4
 
 /**
@@ -5215,12 +5249,12 @@ function transformMat4(out, a, m) {
     out[1] = m[1] * x + m[5] * y + m[13]
     return out
 }
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 function lerp(v0, v1, t) {
     return v0*(1-t)+v1*t
 }
 module.exports = lerp
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 module.exports = newArray
 
 function newArray (n, value) {
@@ -5232,7 +5266,7 @@ function newArray (n, value) {
   return array
 }
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 
 /* Copyright (C) 2013 Justin Windle, http://soulwire.co.uk */
 
@@ -5865,7 +5899,7 @@ function newArray (n, value) {
 
 }));
 
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 // altered from d3-random to support an optional custom random function
 
 module.exports = function (mu, sigma, rand) {

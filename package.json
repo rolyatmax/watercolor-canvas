@@ -1,22 +1,40 @@
 {
+  "name": "watercolor",
+  "version": "1.0.0",
+  "description": "watercolor effects on html canvas",
+  "main": "index.js",
   "scripts": {
-    "start": "budo index.js:bundle.js --open --live",
-    "build": "mkdir -p docs && browserify index.js > docs/bundle.js && cp index.html docs/",
+    "start": "budo demo.js:bundle.js --open --live",
+    "build": "mkdir -p docs && browserify demo.js > docs/bundle.js && cp index.html docs/",
     "lint": "standard"
   },
   "devDependencies": {
+    "alea": "^0.0.9",
     "browserify": "^14.3.0",
     "budo": "^10.0.3",
+    "dat-gui": "^0.5.0",
+    "sketch-js": "^1.1.3",
     "standard": "^10.0.2"
   },
   "dependencies": {
-    "alea": "^0.0.9",
-    "d3-random": "^1.0.3",
-    "dat-gui": "^0.5.0",
     "gl-vec2": "^1.0.0",
     "lerp": "^1.0.3",
-    "new-array": "^1.0.0",
-    "polybooljs": "^1.1.2",
-    "sketch-js": "^1.1.3"
-  }
+    "new-array": "^1.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rolyatmax/watercolor.git"
+  },
+  "keywords": [
+    "canvas",
+    "watercolor",
+    "color",
+    "blending"
+  ],
+  "author": "Taylor Baldwin <taylorbaldwin@gmail.com> (https://tbaldw.in)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rolyatmax/watercolor/issues"
+  },
+  "homepage": "https://github.com/rolyatmax/watercolor#readme"
 }
