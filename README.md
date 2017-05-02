@@ -14,6 +14,12 @@ Use [npm](https://npmjs.com/) to install.
 npm install watercolor --save
 ```
 
+## To do:
+
+ - [ ] Publish package
+ - [ ] Let user pass in colors, positions
+ - [ ] Document API
+
 ## Try me
 
 [Demo](https://rolyatmax.github.io/watercolor)
