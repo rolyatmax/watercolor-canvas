@@ -2,17 +2,33 @@
   "name": "watercolor",
   "version": "1.0.0",
   "description": "watercolor effects on html canvas",
-  "main": "index.js",
+  "main": "watercolor.js",
+  "module": "lib/index.js",
+  "author": {
+    "name": "Taylor Baldwin",
+    "email": "taylorbaldwin@gmail.com",
+    "url": "https://tbaldw.in/"
+  },
+  "license": "MIT",
   "scripts": {
+    "bundle": "rollup --format=umd --name=Watercolor -- lib/index.js > watercolor.js",
+    "build": "npm run transpile && npm run bundle",
+    "transpile": "babel src --out-dir=lib --modules=false",
     "start": "budo demo.js:bundle.js --open --live",
-    "build": "mkdir -p docs && browserify demo.js > docs/bundle.js && cp index.html docs/",
-    "lint": "standard"
+    "build-example": "mkdir -p docs && browserify demo.js > docs/bundle.js && cp index.html docs/",
+    "lint": "standard",
+    "prepublish": "npm run build && npm run lint"
   },
   "devDependencies": {
     "alea": "^0.0.9",
+    "babel-cli": "^6.24.1",
+    "babel-preset-es2015": "^6.24.1",
+    "babelify": "^7.3.0",
     "browserify": "^14.3.0",
     "budo": "^10.0.3",
     "dat-gui": "^0.5.0",
+    "rollup": "^0.41.6",
+    "rollup-plugin-babel": "^2.7.1",
     "sketch-js": "^1.1.3",
     "standard": "^10.0.2"
   },
@@ -21,6 +37,17 @@
     "lerp": "^1.0.3",
     "new-array": "^1.0.0"
   },
+  "standard": {
+    "ignore": [
+      "watercolor.js",
+      "docs",
+      "lib"
+    ]
+  },
+  "files": [
+    "watercolor.js",
+    "lib"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rolyatmax/watercolor.git"
@@ -31,10 +58,13 @@
     "color",
     "blending"
   ],
-  "author": "Taylor Baldwin <taylorbaldwin@gmail.com> (https://tbaldw.in)",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/rolyatmax/watercolor/issues"
   },
-  "homepage": "https://github.com/rolyatmax/watercolor#readme"
+  "homepage": "https://github.com/rolyatmax/watercolor#readme",
+  "browserify": {
+    "transform": [
+      "babelify"
+    ]
+  }
 }

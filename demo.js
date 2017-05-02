@@ -1,7 +1,7 @@
-const Sketch = require('sketch-js')
-const { GUI } = require('dat-gui')
-const Alea = require('alea')
-const watercolor = require('./')
+import Sketch from 'sketch-js'
+import { GUI } from 'dat-gui'
+import Alea from 'alea'
+import watercolor from './lib'
 
 const container = document.body.appendChild(document.createElement('div'))
 document.body.style.margin = 0

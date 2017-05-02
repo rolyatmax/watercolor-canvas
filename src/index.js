@@ -1,7 +1,7 @@
-const newArray = require('new-array')
-const vec2 = require('gl-vec2')
-const lerp = require('lerp')
-const normal = require('./normal')
+import newArray from 'new-array'
+import vec2 from 'gl-vec2'
+import lerp from 'lerp'
+import normal from './normal'
 
 const defaultSettings = {
   colors: 3,
@@ -18,7 +18,7 @@ const defaultSettings = {
   random: Math.random
 }
 
-module.exports = function watercolor (settings) {
+export default function watercolor (settings) {
   settings = Object.assign({}, defaultSettings, settings)
   const { context, randomFn } = settings
   const { width, height } = context.canvas

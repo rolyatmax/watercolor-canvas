@@ -1,6 +1,5 @@
 // altered from d3-random to support an optional custom random function
-
-module.exports = function (mu, sigma, rand) {
+export default function (mu, sigma, rand) {
   var x, r
   mu = mu == null ? 0 : +mu
   sigma = sigma == null ? 1 : +sigma

@@ -13,6 +13,12 @@ npm install
 npm start
 ```
 
+To develop, also run:
+
+```shell
+npm run transpile -- --watch
+```
+
 ![watercolor](/img/1.png?raw=true "watercolor")
 
 ![watercolor](/img/2.png?raw=true "watercolor")
