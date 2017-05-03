@@ -19,7 +19,6 @@ const defaultSettings = {
 export default function watercolor (settings) {
   settings = Object.assign({}, defaultSettings, settings)
   const { context, randomFn } = settings
-  const { width, height } = context.canvas
 
   context.globalCompositeOperation = settings.blend
 

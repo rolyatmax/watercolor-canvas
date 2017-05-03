@@ -623,9 +623,6 @@ function watercolor(settings) {
   var _settings = settings,
       context = _settings.context,
       randomFn = _settings.randomFn;
-  var _context$canvas = context.canvas,
-      width = _context$canvas.width,
-      height = _context$canvas.height;
 
 
   context.globalCompositeOperation = settings.blend;
