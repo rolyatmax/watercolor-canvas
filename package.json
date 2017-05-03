@@ -1,6 +1,6 @@
 {
   "name": "watercolor-canvas",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "watercolor effects on html canvas",
   "main": "watercolor-canvas.js",
   "module": "lib/index.js",
