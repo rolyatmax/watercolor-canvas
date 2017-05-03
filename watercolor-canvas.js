@@ -31,9 +31,7 @@ var _normal2 = _interopRequireDefault(_normal);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var defaultSettings = {
-  colors: 3,
   shapePoints: 5,
-  spread: 450,
   colorSize: 300,
   deformations: 2,
   layers: 55,
@@ -58,22 +56,22 @@ function watercolor(settings) {
   context.globalCompositeOperation = settings.blend;
   context.clearRect(0, 0, width, height);
 
-  var canvasCenter = [width / 2, height / 2];
-  var shapes = (0, _newArray2.default)(settings.colors).map(function () {
-    var rgb = [randomFn() * 256 | 0, randomFn() * 256 | 0, randomFn() * 256 | 0];
+  var shapes = settings.colors.map(function (_ref) {
+    var color = _ref.color,
+        position = _ref.position;
 
-    var rads = randomFn() * Math.PI * 2;
-    var dist = Math.pow(randomFn(), 0.5) * settings.spread;
-    var shapeCenter = [Math.cos(rads) * dist + canvasCenter[0], Math.sin(rads) * dist + canvasCenter[1]];
     var points = (0, _newArray2.default)(settings.shapePoints).map(function (_, i) {
       var rads = Math.PI * 2 / settings.shapePoints * i;
-      return [Math.cos(rads) * settings.colorSize + shapeCenter[0], Math.sin(rads) * settings.colorSize + shapeCenter[1]];
+      return [Math.cos(rads) * settings.colorSize + position[0], Math.sin(rads) * settings.colorSize + position[1]];
     });
 
     var j = settings.deformations + 2;
     while (j--) {
       points = deformPolygon(points);
     }
+
+    // fix this to turn any color representation into rgb
+    var rgb = color;
 
     return { points: points, rgb: rgb };
   });

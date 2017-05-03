@@ -4,9 +4,7 @@ import lerp from 'lerp'
 import normal from './normal'
 
 const defaultSettings = {
-  colors: 3,
   shapePoints: 5,
-  spread: 450,
   colorSize: 300,
   deformations: 2,
   layers: 55,
@@ -26,25 +24,12 @@ export default function watercolor (settings) {
   context.globalCompositeOperation = settings.blend
   context.clearRect(0, 0, width, height)
 
-  const canvasCenter = [width / 2, height / 2]
-  const shapes = newArray(settings.colors).map(() => {
-    const rgb = [
-      randomFn() * 256 | 0,
-      randomFn() * 256 | 0,
-      randomFn() * 256 | 0
-    ]
-
-    const rads = randomFn() * Math.PI * 2
-    const dist = Math.pow(randomFn(), 0.5) * settings.spread
-    const shapeCenter = [
-      Math.cos(rads) * dist + canvasCenter[0],
-      Math.sin(rads) * dist + canvasCenter[1]
-    ]
+  const shapes = settings.colors.map(({ color, position }) => {
     let points = newArray(settings.shapePoints).map((_, i) => {
       const rads = Math.PI * 2 / settings.shapePoints * i
       return [
-        Math.cos(rads) * settings.colorSize + shapeCenter[0],
-        Math.sin(rads) * settings.colorSize + shapeCenter[1]
+        Math.cos(rads) * settings.colorSize + position[0],
+        Math.sin(rads) * settings.colorSize + position[1]
       ]
     })
 
@@ -52,6 +37,9 @@ export default function watercolor (settings) {
     while (j--) {
       points = deformPolygon(points)
     }
+
+    // fix this to turn any color representation into rgb
+    const rgb = color
 
     return { points, rgb }
   })

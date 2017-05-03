@@ -1,6 +1,7 @@
 import Sketch from 'sketch-js'
 import { GUI } from 'dat-gui'
 import Alea from 'alea'
+import newArray from 'new-array'
 import watercolor from './lib'
 
 const container = document.body.appendChild(document.createElement('div'))
@@ -16,10 +17,10 @@ const settings = {
   colors: 3,
   shapePoints: 5,
   spread: 450,
-  colorSize: 300,
+  colorSize: 350,
   deformations: 2,
   layers: 55,
-  randomSeed: 16,
+  randomSeed: 217,
   sigma: 2,
   blend: 'lighten',
   mask: true,
@@ -32,10 +33,27 @@ let rand
 ctx.setup = ctx.resize = function () {
   rand = new Alea(settings.randomSeed)
   ctx.clearRect(0, 0, ctx.width, ctx.height)
+  const canvasCenter = [ctx.width / 2, ctx.height / 2]
+  const colors = newArray(settings.colors).map(() => {
+    const color = [
+      rand() * 256 | 0,
+      rand() * 256 | 0,
+      rand() * 256 | 0
+    ]
+
+    const rads = rand() * Math.PI * 2
+    const dist = Math.pow(rand(), 0.5) * settings.spread
+    const position = [
+      Math.cos(rads) * dist + canvasCenter[0],
+      Math.sin(rads) * dist + canvasCenter[1]
+    ]
+    return { color, position }
+  })
 
   const params = Object.assign({}, settings, {
     randomFn: rand,
-    context: ctx
+    context: ctx,
+    colors: colors
   })
   const draw = watercolor(params)
   draw()
@@ -54,4 +72,4 @@ gui.add(settings, 'mask').onChange(ctx.setup.bind(ctx))
 gui.add(settings, 'maskCircles', 1, 500).step(1).onChange(ctx.setup.bind(ctx))
 gui.add(settings, 'maskCircleSize', 1, 500).onChange(ctx.setup.bind(ctx))
 // gui.add(settings, 'fitToNeighbor', ['min', 'max']).onChange(ctx.setup.bind(ctx))
-gui.add(settings, 'randomSeed', 0, 999).onChange(ctx.setup.bind(ctx))
+gui.add(settings, 'randomSeed', 0, 999).step(1).onChange(ctx.setup.bind(ctx))

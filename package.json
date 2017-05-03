@@ -1,8 +1,8 @@
 {
-  "name": "watercolor",
+  "name": "watercolor-canvas",
   "version": "1.0.0",
   "description": "watercolor effects on html canvas",
-  "main": "watercolor.js",
+  "main": "watercolor-canvas.js",
   "module": "lib/index.js",
   "author": {
     "name": "Taylor Baldwin",
@@ -11,7 +11,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "bundle": "rollup --format=umd --name=Watercolor -- lib/index.js > watercolor.js",
+    "bundle": "rollup --format=umd --name=WatercolorCanvas -- lib/index.js > watercolor-canvas.js",
     "build": "npm run transpile && npm run bundle",
     "transpile": "babel src --out-dir=lib --modules=false",
     "start": "budo demo.js:bundle.js --open --live",
@@ -39,18 +39,18 @@
   },
   "standard": {
     "ignore": [
-      "watercolor.js",
+      "watercolor-canvas.js",
       "docs",
       "lib"
     ]
   },
   "files": [
-    "watercolor.js",
+    "watercolor-canvas.js",
     "lib"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rolyatmax/watercolor.git"
+    "url": "git+https://github.com/rolyatmax/watercolor-canvas.git"
   },
   "keywords": [
     "canvas",
@@ -59,9 +59,9 @@
     "blending"
   ],
   "bugs": {
-    "url": "https://github.com/rolyatmax/watercolor/issues"
+    "url": "https://github.com/rolyatmax/watercolor-canvas/issues"
   },
-  "homepage": "https://github.com/rolyatmax/watercolor#readme",
+  "homepage": "https://github.com/rolyatmax/watercolor-canvas#readme",
   "browserify": {
     "transform": [
       "babelify"
