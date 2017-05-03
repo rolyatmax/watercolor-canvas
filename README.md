@@ -4,7 +4,7 @@
 
 Drawing watercolor effects to HTML canvas. Inspired by [this great blog post](http://www.tylerlhobbs.com/writings/watercolor) by [tyler hobbs](http://www.tylerlhobbs.com/).
 
-![watercolor-canvas](/img/6.png?raw=true "watercolor-canvas")
+![watercolor-canvas](/images/6.png?raw=true "watercolor-canvas")
 
 ## Install
 
@@ -41,14 +41,14 @@ npm run transpile -- --watch
 
 MIT, see [LICENSE.md](http://github.com/rolyatmax/react-geojson-map/blob/master/LICENSE.md) for details.
 
-![watercolor-canvas](/img/2.png?raw=true "watercolor-canvas")
+![watercolor-canvas](/images/2.png?raw=true "watercolor-canvas")
 
-![watercolor-canvas](/img/1.png?raw=true "watercolor-canvas")
+![watercolor-canvas](/images/1.png?raw=true "watercolor-canvas")
 
-![watercolor-canvas](/img/3.png?raw=true "watercolor-canvas")
+![watercolor-canvas](/images/3.png?raw=true "watercolor-canvas")
 
-![watercolor-canvas](/img/4.png?raw=true "watercolor-canvas")
+![watercolor-canvas](/images/4.png?raw=true "watercolor-canvas")
 
-![watercolor-canvas](/img/5.png?raw=true "watercolor-canvas")
+![watercolor-canvas](/images/5.png?raw=true "watercolor-canvas")
 
-![watercolor-canvas](/img/7.png?raw=true "watercolor-canvas")
+![watercolor-canvas](/images/7.png?raw=true "watercolor-canvas")
