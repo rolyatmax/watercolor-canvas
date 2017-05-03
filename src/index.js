@@ -22,7 +22,6 @@ export default function watercolor (settings) {
   const { width, height } = context.canvas
 
   context.globalCompositeOperation = settings.blend
-  context.clearRect(0, 0, width, height)
 
   const shapes = settings.colors.map(({ color, position }) => {
     let points = newArray(settings.shapePoints).map((_, i) => {

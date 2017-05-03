@@ -629,7 +629,6 @@ function watercolor(settings) {
 
 
   context.globalCompositeOperation = settings.blend;
-  context.clearRect(0, 0, width, height);
 
   var shapes = settings.colors.map(function (_ref) {
     var color = _ref.color,
